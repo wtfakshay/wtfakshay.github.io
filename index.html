@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Luxe Salon | Hair, Skin & Beauty in Bangalore</title>
+<meta name="description" content="Luxe Salon in Bangalore. Haircuts, facials, hair spa and more. Book your appointment online in 30 seconds.">
+<style>
+:root{--bg:#0d0d0f;--card:#17171b;--gold:#d4af37;--text:#f4f1ea;--muted:#9a9690;--line:#2a2a30}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:Georgia,'Times New Roman',serif;line-height:1.6}
+.wrap{max-width:560px;margin:0 auto;padding:0 18px}
+header{text-align:center;padding:56px 0 32px}
+header small{color:var(--gold);letter-spacing:4px;font-size:12px;font-family:Arial,sans-serif}
+h1{font-size:40px;margin:10px 0;font-weight:400}
+header p{color:var(--muted);font-family:Arial,sans-serif;font-size:15px}
+h2{font-weight:400;font-size:24px;color:var(--gold);margin:36px 0 14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px}
+.row{display:flex;justify-content:space-between;padding:11px 0;border-bottom:1px solid var(--line);font-family:Arial,sans-serif;font-size:15px}
+.row:last-child{border-bottom:none}
+.row b{color:var(--gold);font-weight:600}
+label{display:block;font-family:Arial,sans-serif;font-size:13px;color:var(--muted);margin:14px 0 6px}
+input,select{width:100%;padding:13px;border-radius:10px;border:1px solid var(--line);background:#0d0d0f;color:var(--text);font-size:16px;font-family:Arial,sans-serif}
+button{width:100%;margin-top:22px;padding:15px;border:none;border-radius:10px;background:var(--gold);color:#111;font-size:16px;font-weight:700;cursor:pointer;font-family:Arial,sans-serif}
+button:disabled{opacity:.6}
+#msg{margin-top:16px;padding:13px;border-radius:10px;font-family:Arial,sans-serif;font-size:15px;display:none}
+.ok{background:#12301f;color:#7be0a0}.err{background:#3a1616;color:#ff9b9b}
+footer{text-align:center;color:var(--muted);font-family:Arial,sans-serif;font-size:14px;padding:40px 0 50px}
+footer a{color:var(--gold);text-decoration:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+<small>EST. BANGALORE</small>
+<h1>Luxe Salon</h1>
+<p>Hair, skin and beauty, done right.<br>Open daily, 10 AM to 8 PM</p>
+</header>
+
+<h2>Our Services</h2>
+<div class="card">
+<div class="row"><span>Haircut</span><b>₹300</b></div>
+<div class="row"><span>Beard trim</span><b>₹150</b></div>
+<div class="row"><span>Facial</span><b>₹800</b></div>
+<div class="row"><span>Hair spa</span><b>₹900</b></div>
+<div class="row"><span>Manicure and pedicure</span><b>₹700</b></div>
+</div>
+
+<h2>Book an Appointment</h2>
+<div class="card">
+<label for="name">Your name</label>
+<input id="name" type="text" autocomplete="name">
+<label for="phone">Phone number (10 digits)</label>
+<input id="phone" type="tel" inputmode="numeric" maxlength="10" autocomplete="tel">
+<label for="service">Service</label>
+<select id="service">
+<option>Haircut</option><option>Beard trim</option><option>Facial</option><option>Hair spa</option><option>Manicure and pedicure</option>
+</select>
+<label for="date">Date</label>
+<input id="date" type="date">
+<label for="time">Time</label>
+<select id="time"></select>
+<button id="btn">Book Now</button>
+<div id="msg"></div>
+</div>
+
+<footer>
+Call or WhatsApp: <a href="tel:+919876543210">+91 98765 43210</a><br>
+Luxe Salon, Bangalore
+</footer>
+</div>
+
+<script>
+var URL_ = "https://uuijqlcamlkekhidkpcp.supabase.co/rest/v1/bookings";
+var KEY = "sb_publishable_OBCtMuu0iVdo3wkaEvpYBA_kMSUQYDQ";
+
+var timeSel = document.getElementById("time");
+for (var h = 10; h < 20; h++) {
+  var hr = h > 12 ? h - 12 : h;
+  var ap = h >= 12 ? "PM" : "AM";
+  var o = document.createElement("option");
+  o.textContent = hr + ":00 " + ap;
+  timeSel.appendChild(o);
+}
+
+var dateInput = document.getElementById("date");
+var t = new Date();
+var today = t.getFullYear() + "-" + String(t.getMonth() + 1).padStart(2, "0") + "-" + String(t.getDate()).padStart(2, "0");
+dateInput.min = today;
+dateInput.value = today;
+
+var msg = document.getElementById("msg");
+function show(text, cls) {
+  msg.textContent = text;
+  msg.className = cls;
+  msg.style.display = "block";
+}
+
+document.getElementById("btn").addEventListener("click", async function () {
+  var btn = this;
+  var name = document.getElementById("name").value.trim();
+  var phone = document.getElementById("phone").value.trim();
+  var service = document.getElementById("service").value;
+  var date = dateInput.value;
+  var time = timeSel.value;
+
+  if (name.length < 2) return show("Please enter your name.", "err");
+  if (!/^[0-9]{10}$/.test(phone)) return show("Please enter a valid 10 digit phone number.", "err");
+  if (!date || date < today) return show("Please choose a valid date.", "err");
+
+  btn.disabled = true;
+  btn.textContent = "Booking...";
+  try {
+    var res = await fetch(URL_, {
+      method: "POST",
+      headers: {
+        "apikey": KEY,
+        "Content-Type": "application/json",
+        "Prefer": "return=minimal"
+      },
+      body: JSON.stringify({
+        name: name,
+        phone: phone,
+        service: service,
+        booking_date: date,
+        booking_time: time
+      })
+    });
+    if (res.ok) {
+      show("Booked! " + service + " on " + date + " at " + time + ". We will call you to confirm.", "ok");
+      document.getElementById("name").value = "";
+      document.getElementById("phone").value = "";
+    } else {
+      show("Could not book right now. Please call us instead.", "err");
+    }
+  } catch (e) {
+    show("No internet connection. Please try again.", "err");
+  }
+  btn.disabled = false;
+  btn.textContent = "Book Now";
+});
+</script>
+</body>
+</html>
